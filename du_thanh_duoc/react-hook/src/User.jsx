@@ -1,4 +1,5 @@
-import React, { Fragment, useEffect, useState } from "react";
+import React, { Fragment, createContext, useEffect, useState } from "react";
+import UserProfiles from "./UserProfiles";
 
 const intialAddress = (_) => {
   return {
@@ -25,6 +26,20 @@ const getAddress = (_) => {
     }, 3000);
   });
 };
+
+export const UserContext = createContext({
+  address: {
+    nation: "Viet Nam",
+    city: "Da Nang",
+    location: {
+      street: "1 Do Xuan Hop",
+      house: "Building",
+    },
+  },
+  age: 100,
+  firstName: "Alex",
+  increaseAge: () => {},
+});
 
 export default function User() {
   const [firstName] = useState("Alex");
@@ -76,14 +91,10 @@ export default function User() {
 
   return (
     <Fragment>
-      <div>First Name: {firstName}</div>
-      <div>Age: {age}</div>
-      <div>Nation: {address.nation}</div>
-      <div>City: {address.city}</div>
-      <div>Street: {address.location.street}</div>
-      <div>House: {address.location.house}</div>
+      <UserContext.Provider value={{ firstName, age, address, increaseAge }}>
+        <UserProfiles />
+      </UserContext.Provider>
       <button onClick={reRender}>Rerender</button>
-      <button onClick={increaseAge}>Increase Age</button>
       <button onClick={changeAddress}>Change Address</button>
       <button onClick={changeLocation}>Change Location</button>
     </Fragment>
