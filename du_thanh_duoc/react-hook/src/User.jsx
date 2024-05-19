@@ -29,11 +29,11 @@ const getAddress = (_) => {
 export default function User() {
   const [firstName] = useState("Alex");
   const [age, setAge] = useState(24);
-  // const [address, setAddress] = useState(intialAddress);
-  const [address, setAddress] = useState((_) => {
-    const init = intialAddress();
-    return init;
-  });
+  const [address, setAddress] = useState(intialAddress);
+  // const [address, setAddress] = useState((_) => {
+  //   const init = intialAddress();
+  //   return init;
+  // });
   const [, setForceRender] = useState(0);
 
   const increaseAge = (_) => {
