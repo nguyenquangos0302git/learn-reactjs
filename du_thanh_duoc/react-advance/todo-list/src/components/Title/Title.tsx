@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useRef } from 'react'
 import styles from './title.module.scss'
 
 type TitleProps = {
@@ -9,7 +9,19 @@ type TitleProps = {
 }
 
 function Title(props: TitleProps) {
-  return <h1 className={styles.ttle}>Todo list typescript</h1>
+  const h1Ref = useRef<HTMLHeadingElement>(null)
+
+  const clickH1 = () => {
+    if (h1Ref.current) {
+      h1Ref.current.style.color = 'red'
+    }
+  }
+
+  return (
+    <h1 className={styles.ttle} ref={h1Ref} onClick={clickH1}>
+      Todo list typescript
+    </h1>
+  )
 }
 
 // function equal(prevProp: TitleProps, nextProps: TitleProps) {

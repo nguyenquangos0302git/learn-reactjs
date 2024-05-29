@@ -1,11 +1,26 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 
-export default function Watch() {
+function WatchTimer() {
   const [seconds, setSeconds] = useState<number>(0)
+  const intervalRef = useRef<any>(null)
   useEffect(() => {
-    setInterval(() => {
+    intervalRef.current = setInterval(() => {
       setSeconds((prev) => prev + 1)
     }, 1000)
+    return () => {
+      clearInterval(intervalRef.current)
+    }
   }, [])
   return <div>Watch: {seconds}</div>
+}
+
+export default function Watch() {
+  const [visible, setVisible] = useState<boolean>(true)
+  return (
+    <div>
+      {' '}
+      {visible && <WatchTimer />}
+      <button onClick={() => setVisible(!visible)}>Hidden</button>
+    </div>
+  )
 }
