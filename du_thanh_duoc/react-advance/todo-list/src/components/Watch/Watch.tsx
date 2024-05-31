@@ -14,7 +14,7 @@ function WatchTimer() {
   return <div>Watch: {seconds}</div>
 }
 
-export default function Watch() {
+export default function Watch(props: any) {
   const [visible, setVisible] = useState<boolean>(true)
   return (
     <div>

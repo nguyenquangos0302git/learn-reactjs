@@ -1,11 +1,15 @@
+import CalculateAge from './components/CalculateAge'
+import Count from './components/Count'
 import TodoList from './components/TodoList'
 import Watch from './components/Watch'
 
 function App() {
   return (
     <div>
-      <Watch />
+      {/* <Watch />
       <TodoList />
+      <Count /> */}
+      <CalculateAge />
     </div>
   )
 }
