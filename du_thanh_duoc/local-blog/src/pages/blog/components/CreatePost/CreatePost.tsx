@@ -1,4 +1,4 @@
-import { addPost, cancelEditingPost, finishEditingPost } from 'pages/blog/blog.reducer'
+import { addPost, cancelEditingPost, finishEditingPost } from 'pages/blog/blog.slice'
 import React, { Fragment, useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { AppDispatch, RootState, store } from 'store'
@@ -40,7 +40,13 @@ export default function CreatePost() {
   return (
     <form onSubmit={handleSubmitForm} onReset={handleCancel}>
       <div className='mb-6'>
-        <label htmlFor='title' className='mb-2 block text-sm font-medium text-gray-900 dark:text-gray-300'>
+        <label
+          htmlFor='title'
+          className='mb-2 block text-sm font-medium text-gray-900 dark:text-gray-300'
+          onClick={(event) => {
+            dispatch({ type: 'blog/clickTitle' })
+          }}
+        >
           Title
         </label>
         <input
