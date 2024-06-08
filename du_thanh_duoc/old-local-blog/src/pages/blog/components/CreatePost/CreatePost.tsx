@@ -1,4 +1,6 @@
+import { addPost } from 'pages/blog/blog.reducer'
 import React, { Fragment, useState } from 'react'
+import { useDispatch } from 'react-redux'
 import { Post } from 'types/blog.type'
 
 const initialState: Post = {
@@ -13,8 +15,17 @@ const initialState: Post = {
 export default function CreatePost() {
   const [formData, setFormData] = useState<Post>(() => initialState)
 
+  const dispatch = useDispatch()
+
+  const handleSubmitForm = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    const formDataWithId = { ...formData, id: new Date().toISOString() }
+    dispatch(addPost(formDataWithId))
+    setFormData(initialState)
+  }
+
   return (
-    <form>
+    <form onSubmit={handleSubmitForm}>
       <div className='mb-6'>
         <label htmlFor='title' className='mb-2 block text-sm font-medium text-gray-900 dark:text-gray-300'>
           Title
