@@ -1,3 +1,4 @@
+import { useAddPostMutation } from 'pages/blog/blog.service'
 import React, { Fragment, useEffect, useState } from 'react'
 import { Post } from 'types/blog.type'
 
@@ -16,8 +17,17 @@ const initialState: Post = {
 
 export default function CreatePost() {
   const [formData, setFormData] = useState(() => initialState)
+  const [addPost, addPostResult] = useAddPostMutation()
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    const result = await addPost(formData).unwrap()
+    console.log(result)
+    setFormData(initialState)
+  }
+
   return (
-    <form onSubmit={() => {}} onReset={() => {}}>
+    <form onSubmit={handleSubmit} onReset={() => {}}>
       <div className='mb-6'>
         <label htmlFor='title' className='mb-2 block text-sm font-medium text-gray-900 dark:text-gray-300'>
           Title
