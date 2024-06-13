@@ -1,6 +1,6 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
-import { url } from 'inspector'
 import { Post } from 'types/blog.type'
+import { CustomError } from 'utils/helpers'
 
 // Nếu bên slice chúng ta dùng createSlice để tạo slice thì bên RTK query dùng createApi
 // Với createApi chúng ta gọi là slice api
@@ -47,11 +47,24 @@ import { Post } from 'types/blog.type'
 export const blogApi = createApi({
   reducerPath: 'blogApi', // tên field trong redux state
   tagTypes: ['Posts'], // Những kiểu tag cho phép dùng trong blogApi
-  baseQuery: fetchBaseQuery({ baseUrl: 'http://localhost:4000' }),
+  keepUnusedDataFor: 10,
+  refetchOnMountOrArgChange: true,
+  baseQuery: fetchBaseQuery({
+    baseUrl: 'http://localhost:4000',
+    prepareHeaders(header) {
+      // header.set('authorization', 'Bearer 123')
+      return header
+    }
+  }),
   endpoints: (builder) => ({
     // Generic type theo thứ tự là kiểu response trả về và argument
     getPosts: builder.query<Post[], void>({
-      query: () => 'posts', // method không có argument => http://localhost:4000/posts
+      query: () => {
+        return {
+          url: 'posts',
+          method: 'GET'
+        } // method không có argument => http://localhost:4000/posts
+      },
       /**
        * providesTags có thể là array hoặc callback return array
        * Nếu có bất kỳ một invalidatesTag nào match với providesTags này
@@ -88,10 +101,15 @@ export const blogApi = createApi({
      */
     addPost: builder.mutation<Post, Omit<Post, 'id'>>({
       query(body) {
-        return {
-          url: 'posts',
-          method: 'POST',
-          body
+        try {
+          return {
+            url: 'posts',
+            method: 'POST',
+            body
+          }
+        } catch (error: any) {
+          console.log(error)
+          throw new CustomError(error.message)
         }
       },
       /**
@@ -99,9 +117,42 @@ export const blogApi = createApi({
        * match với nó sẽ bị gọi lại
        * Trong trường hợp này getPosts sẽ chạy lại
        */
-      invalidatesTags: (result, error, body) => [{ type: 'Posts', id: 'LIST' }]
+      invalidatesTags: (result, error, body) => (error ? [] : [{ type: 'Posts', id: 'LIST' }])
+    }),
+    getPost: builder.query<Post, string>({
+      query: (id) => ({
+        url: `posts/${id}`,
+        headers: {
+          // hello: 'Im quang'
+        },
+        params: {
+          first_name: 'test',
+          'last-name': 'test'
+        }
+      })
+    }),
+    updatePost: builder.mutation<Post, { id: string; body: Post }>({
+      query(data) {
+        return {
+          url: `posts/${data.id}`,
+          method: 'PUT',
+          body: data.body
+        }
+      },
+      // Trong trường hợp này thì getPosts sẽ chạy lại
+      invalidatesTags: (result, error, data) => [{ type: 'Posts', id: data.id }]
+    }),
+    deletePost: builder.mutation<{}, string>({
+      query(id) {
+        return {
+          url: `posts/${id}`,
+          method: 'DELETE'
+        }
+      },
+      invalidatesTags: (result, error, id) => (error ? [] : [{ type: 'Posts', id: id }])
     })
   })
 })
 
-export const { useGetPostsQuery, useAddPostMutation } = blogApi
+export const { useGetPostsQuery, useAddPostMutation, useGetPostQuery, useUpdatePostMutation, useDeletePostMutation } =
+  blogApi

@@ -31,30 +31,6 @@
       "publishDate": "2022-10-16T11:35",
       "published": false,
       "title": "Nơi nào có ý chí, nơi đó có con đường."
-    },
-    {
-      "id": "dawdaw",
-      "description": "test",
-      "featuredImage": "test",
-      "publishDate": "2024-06-12T00:29",
-      "published": true,
-      "title": "test"
-    },
-    {
-      "id": "d12d1",
-      "description": "test",
-      "featuredImage": "test",
-      "publishDate": "2024-06-12T00:45",
-      "published": false,
-      "title": "test"
-    },
-    {
-      "id": "",
-      "description": "ffwaf",
-      "featuredImage": "dwa",
-      "publishDate": "2024-06-12T00:46",
-      "published": false,
-      "title": "daw"
     }
   ]
 }
