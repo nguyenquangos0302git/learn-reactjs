@@ -1,9 +1,15 @@
 import React from 'react'
-import { Link, NavLink } from 'react-router-dom'
+import { Link, NavLink, Route, Routes, useLocation } from 'react-router-dom'
 
 interface Props {
   children?: React.ReactNode
 }
+
+const ExtraContent = () => {
+  const location = useLocation()
+  return <div>test {location.pathname} </div>
+}
+
 export default function MainLayout({ children }: Props) {
   return (
     <div className='grid min-h-screen grid-cols-4'>
@@ -66,6 +72,9 @@ export default function MainLayout({ children }: Props) {
               </NavLink>
             </li>
           </ul>
+          <Routes location={'/about'}>
+            <Route path='/about' element={<ExtraContent />} />
+          </Routes>
         </div>
       </aside>
       <main className='col-span-3 h-full py-4 px-3'>{children}</main>
