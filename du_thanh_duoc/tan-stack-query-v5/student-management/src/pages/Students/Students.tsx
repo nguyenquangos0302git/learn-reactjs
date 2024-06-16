@@ -1,38 +1,94 @@
-import { keepPreviousData, useQuery } from '@tanstack/react-query'
-import { getStudents } from 'apis/students.api'
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { deleteStudent, getStudent, getStudents } from 'apis/students.api'
 import { useQueryString } from 'hooks/useQueryString'
 import { Fragment, useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { Students as StudentsType } from 'types/students.type'
 import classNames from 'classnames'
+import { toast } from 'react-toastify'
 
 const LIMIT = 10
 
 export default function Students() {
   const queryString: { page?: string } = useQueryString()
   const page = Number(queryString.page || 1)
-  const { data, isLoading } = useQuery({
+  // const studentsQuery = useQuery({
+  //   queryKey: ['students', page],
+  //   queryFn: ({ signal }) => {
+  //     return getStudents(page, LIMIT, signal)
+  //   },
+  //   placeholderData: (keepPreviousData) => keepPreviousData
+  // })
+  const studentsQuery = useQuery({
     queryKey: ['students', page],
-    queryFn: () => getStudents(page, LIMIT),
-    placeholderData: (keepPreviousData) => keepPreviousData
+    queryFn: () => {
+      const controller = new AbortController()
+      controller.abort()
+      return getStudents(page, LIMIT, controller.signal)
+    },
+    placeholderData: (keepPreviousData) => keepPreviousData,
+    retry: 0
+  })
+  const queryClient = useQueryClient()
+  const deleteStudentMutation = useMutation({
+    mutationFn: (id: number) => {
+      return deleteStudent(Number(id))
+    },
+    onSuccess: (_, id) => {
+      queryClient.invalidateQueries({ queryKey: ['students', page] })
+      toast.success(`Delete ${id} success`)
+    }
   })
 
-  const totalStudentsCount = Number(data?.headers['x-total-count']) || 0
+  const handleDelete = (id: number) => {
+    deleteStudentMutation.mutate(id)
+  }
+
+  const handlePrefectStudent = (id: number) => {
+    // queryClient.prefetchQuery({ queryKey: ['student', id], queryFn: () => getStudent(id), staleTime: 10 * 1000 })
+  }
+
+  const fetchStudent = (second: number) => {
+    const id = 6
+    queryClient.prefetchQuery({ queryKey: ['student', id], queryFn: () => getStudent(id), staleTime: 1000 * second })
+  }
+
+  const refetchStudent = () => {
+    studentsQuery.refetch()
+  }
+
+  const cancelRefetchStudent = () => {
+    queryClient.cancelQueries({ queryKey: ['students', page] })
+  }
+
+  const totalStudentsCount = Number(studentsQuery.data?.headers['x-total-count']) || 0
   const totalPage = Math.ceil(totalStudentsCount / LIMIT)
 
   return (
     <div>
       <h1 className='text-lg'>Students</h1>
+      <div className='mt-5 rounded bg-blue-500 px-5 py-2 text-white' onClick={() => fetchStudent(10)}>
+        Click 10s
+      </div>
+      <div className='mt-5 rounded bg-blue-500 px-5 py-2 text-white' onClick={() => fetchStudent(3)}>
+        Click 5s
+      </div>
+      <div className='mt-5 rounded bg-blue-500 px-5 py-2 text-white' onClick={() => refetchStudent()}>
+        Refetch Student
+      </div>
+      <div className='mt-5 rounded bg-blue-500 px-5 py-2 text-white' onClick={() => cancelRefetchStudent()}>
+        Cancel Refetch Student
+      </div>
       <div className='mt-6'>
         <Link
           to='/students/add'
           className='me-2 mb-2 rounded-lg bg-blue-700 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800'
         >
-          Default
+          Add Student
         </Link>
       </div>
 
-      {isLoading && (
+      {studentsQuery.isLoading && (
         <div role='status' className='mt-6 animate-pulse'>
           <div className='mb-4 h-4  rounded bg-gray-200 dark:bg-gray-700' />
           <div className='mb-2.5 h-10  rounded bg-gray-200 dark:bg-gray-700' />
@@ -50,7 +106,7 @@ export default function Students() {
           <span className='sr-only'>Loading...</span>
         </div>
       )}
-      {!isLoading && (
+      {!studentsQuery.isLoading && (
         <Fragment>
           <div className='relative mt-6 overflow-x-auto shadow-md sm:rounded-lg'>
             <table className='w-full text-left text-sm text-gray-500 dark:text-gray-400'>
@@ -74,10 +130,11 @@ export default function Students() {
                 </tr>
               </thead>
               <tbody>
-                {data?.data.map((student) => (
+                {studentsQuery.data?.data.map((student) => (
                   <tr
                     key={student.id}
                     className='border-b bg-white hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-600'
+                    onMouseEnter={() => handlePrefectStudent(student.id)}
                   >
                     <td className='py-4 px-6'>{student.id}</td>
                     <td className='py-4 px-6'>
@@ -89,12 +146,17 @@ export default function Students() {
                     <td className='py-4 px-6'>{student.email}</td>
                     <td className='py-4 px-6 text-right'>
                       <Link
-                        to='/students/1'
+                        to={`/students/${student.id}`}
                         className='mr-5 font-medium text-blue-600 hover:underline dark:text-blue-500'
                       >
                         Edit
                       </Link>
-                      <button className='font-medium text-red-600 dark:text-red-500'>Delete</button>
+                      <button
+                        className='font-medium text-red-600 dark:text-red-500'
+                        onClick={() => handleDelete(student.id)}
+                      >
+                        Delete
+                      </button>
                     </td>
                   </tr>
                 ))}
