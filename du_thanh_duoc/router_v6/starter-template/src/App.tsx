@@ -6,9 +6,22 @@ import About from 'pages/About'
 import Dashboard from 'pages/Dashboard'
 import NotFound from 'pages/NotFound'
 import Staff from 'pages/Staff'
-import { Routes, Route, useRoutes } from 'react-router-dom'
+import { useEffect } from 'react'
+import { Routes, Route, useRoutes, useLocation, useSearchParams } from 'react-router-dom'
 
 function App() {
+  const location = useLocation()
+
+  const [searchParams] = useSearchParams()
+
+  useEffect(() => {
+    console.log(Object.fromEntries([...searchParams]))
+  }, [searchParams])
+
+  useEffect(() => {
+    console.log(location)
+  }, [location])
+
   const elements = useRoutes([
     {
       path: '/',
