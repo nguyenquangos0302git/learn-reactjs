@@ -8,3 +8,4 @@ interface AuthAccount {
 
 export const registerAccount = (body: AuthAccount) => http.post<AuthResponse>('/register', body)
 export const loginAccount = (body: AuthAccount) => http.post<AuthResponse>('/login', body)
+export const logout = () => http.post('/logout')

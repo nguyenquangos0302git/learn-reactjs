@@ -1,7 +1,24 @@
 import { Link } from 'react-router-dom'
 import Popover from '../Popover'
+import { useMutation } from '@tanstack/react-query'
+import { logout } from 'src/apis/auth.api'
+import { useContext } from 'react'
+import { AppContext } from 'src/contexts/app.context'
 
 export default function Header() {
+  const { isAuthenticated, setIsAuthenticated } = useContext(AppContext)
+
+  const logoutAccountMutation = useMutation({
+    mutationFn: () => logout(),
+    onSuccess: () => {
+      setIsAuthenticated(false)
+    }
+  })
+
+  const handleLogoutAccount = () => {
+    logoutAccountMutation.mutate()
+  }
+
   return (
     <div className='pb-5 pt-2 bg-[linear-gradient(-180deg,#f53d2d,#f63)] text-white'>
       <div className='container'>
@@ -43,38 +60,53 @@ export default function Header() {
               <path strokeLinecap='round' strokeLinejoin='round' d='m19.5 8.25-7.5 7.5-7.5-7.5' />
             </svg>
           </Popover>
-
-          <Popover
-            className='flex items-center py-1 hover:text-gray-300 cursor-pointer ml-6'
-            renderPopover={
-              <div className='bg-white relative shadow-md rounded-sm border border-gray-200'>
-                <Link
-                  to='/profile'
-                  className='block py-2 px-3 hover:bg-slate-100 bg-white hover:text-cyan-500 w-full text-left'
-                >
-                  Tài khoản của tôi
-                </Link>
-                <Link
-                  to='/'
-                  className='block py-2 px-3 hover:bg-slate-100 bg-white hover:text-cyan-500 w-full text-left'
-                >
-                  Đơn mua
-                </Link>
-                <button className='block py-2 px-3 hover:bg-slate-100 bg-white hover:text-cyan-500 w-full text-left'>
-                  Đăng xuất
-                </button>
+          {isAuthenticated && (
+            <Popover
+              className='flex items-center py-1 hover:text-gray-300 cursor-pointer ml-6'
+              renderPopover={
+                <div className='bg-white relative shadow-md rounded-sm border border-gray-200'>
+                  <Link
+                    to='/profile'
+                    className='block py-2 px-3 hover:bg-slate-100 bg-white hover:text-cyan-500 w-full text-left'
+                  >
+                    Tài khoản của tôi
+                  </Link>
+                  <Link
+                    to='/'
+                    className='block py-2 px-3 hover:bg-slate-100 bg-white hover:text-cyan-500 w-full text-left'
+                  >
+                    Đơn mua
+                  </Link>
+                  <button
+                    className='block py-2 px-3 hover:bg-slate-100 bg-white hover:text-cyan-500 w-full text-left'
+                    onClick={handleLogoutAccount}
+                  >
+                    Đăng xuất
+                  </button>
+                </div>
+              }
+            >
+              <div className='w-5 h-5 mr-2 flex-shrink-0'>
+                <img
+                  src='https://mui.com/static/images/avatar/3.jpg'
+                  alt='avatar'
+                  className='w-full h-full object-cover rounded-full'
+                />
               </div>
-            }
-          >
-            <div className='w-5 h-5 mr-2 flex-shrink-0'>
-              <img
-                src='https://mui.com/static/images/avatar/3.jpg'
-                alt='avatar'
-                className='w-full h-full object-cover rounded-full'
-              />
+              <div>Shoppee Account Mix</div>
+            </Popover>
+          )}
+          {!isAuthenticated && (
+            <div className='flex items-center'>
+              <Link to='/register' className='mx-3 capitalize hover:text-white/70'>
+                Đăng ký
+              </Link>
+              <div className='border-r-[1px] border-r-white/40 h-4' />
+              <Link to='/login' className='mx-3 capitalize hover:text-white/70'>
+                Đăng nhập
+              </Link>
             </div>
-            <div>Shoppee Account Mix</div>
-          </Popover>
+          )}
         </div>
         <div className='grid grid-cols-12 gap-4 mt-4 items-end'>
           <Link to='/' className='col-span-2'>
@@ -121,7 +153,7 @@ export default function Header() {
                         <div className='flex-shrink-0'>
                           <img
                             src='https://images.unsplash.com/photo-1718964313551-420f92249238?q=80&w=2784&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'
-                            alt='picture'
+                            alt='picture1'
                             className='w-11 h-11 object-cover'
                           />
                         </div>
@@ -136,7 +168,7 @@ export default function Header() {
                         <div className='flex-shrink-0'>
                           <img
                             src='https://plus.unsplash.com/premium_photo-1670282393309-70fd7f8eb1ef?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTN8fGdpcmx8ZW58MHx8MHx8fDA%3D'
-                            alt='picture'
+                            alt='picture2'
                             className='w-11 h-11 object-cover'
                           />
                         </div>
@@ -151,7 +183,7 @@ export default function Header() {
                         <div className='flex-shrink-0'>
                           <img
                             src='https://images.unsplash.com/photo-1635488640163-e5f6782cda6e?q=80&w=2788&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'
-                            alt='picture'
+                            alt='picture3'
                             className='w-11 h-11 object-cover'
                           />
                         </div>
@@ -166,7 +198,7 @@ export default function Header() {
                         <div className='flex-shrink-0'>
                           <img
                             src='https://images.unsplash.com/photo-1631947430066-48c30d57b943?q=80&w=2816&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'
-                            alt='picture'
+                            alt='picture4'
                             className='w-11 h-11 object-cover'
                           />
                         </div>
@@ -181,7 +213,7 @@ export default function Header() {
                         <div className='flex-shrink-0'>
                           <img
                             src='https://plus.unsplash.com/premium_photo-1718204437243-a644894df78d?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxlZGl0b3JpYWwtZmVlZHwxfHx8ZW58MHx8fHx8'
-                            alt='picture'
+                            alt='picture5'
                             className='w-11 h-11 object-cover'
                           />
                         </div>
@@ -196,7 +228,7 @@ export default function Header() {
                         <div className='flex-shrink-0'>
                           <img
                             src='https://images.unsplash.com/photo-1719054415376-2fdc899d9df9?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxlZGl0b3JpYWwtZmVlZHw2fHx8ZW58MHx8fHx8'
-                            alt='picture'
+                            alt='picture6'
                             className='w-11 h-11 object-cover'
                           />
                         </div>

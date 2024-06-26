@@ -1,14 +1,20 @@
 import { yupResolver } from '@hookform/resolvers/yup'
 import { useMutation } from '@tanstack/react-query'
+import { useContext } from 'react'
 import { useForm } from 'react-hook-form'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { loginAccount } from 'src/apis/auth.api'
+import Button from 'src/components/Button'
 import Input from 'src/components/Input'
-import { ResponseApi } from 'src/types/utils.type'
+import { AppContext } from 'src/contexts/app.context'
+import { ErrorResponse } from 'src/types/utils.type'
 import { LoginSchemaType, loginSchema } from 'src/utils/rules'
 import { isAxiosUnprocessableEntityError } from 'src/utils/utils'
 
 export default function Login() {
+  const { setIsAuthenticated } = useContext(AppContext)
+  const navigate = useNavigate()
+
   const {
     register,
     handleSubmit,
@@ -26,10 +32,11 @@ export default function Login() {
   const handleOnSubmit = handleSubmit((data) => {
     loginAccountMutation.mutate(data, {
       onSuccess: (data) => {
-        console.log(data)
+        setIsAuthenticated(true)
+        navigate('/')
       },
       onError: (error) => {
-        if (isAxiosUnprocessableEntityError<ResponseApi<LoginSchemaType>>(error)) {
+        if (isAxiosUnprocessableEntityError<ErrorResponse<LoginSchemaType>>(error)) {
           const formError = error.response?.data.data
           if (formError) {
             Object.keys(formError).forEach((key) => {
@@ -69,12 +76,14 @@ export default function Login() {
                 errorMessage={errors.password?.message}
               />
               <div className='mt-2'>
-                <button
+                <Button
                   type='submit'
                   className='w-full text-center py-4 px-2 uppercase bg-red-500 text-white text-sm hover:bg-red-600'
+                  isLoading={loginAccountMutation.isPending}
+                  disabled={loginAccountMutation.isPending}
                 >
                   Đăng nhập
-                </button>
+                </Button>
               </div>
               <div className='flex items-center justify-center'>
                 <span className='text-gray-300'>Bạn chưa có tài khoản chưa?</span>

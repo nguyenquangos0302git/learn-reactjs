@@ -1,6 +1,8 @@
-import { Link } from 'react-router-dom'
+import { Link, useMatch } from 'react-router-dom'
 
 export default function AuthHeader() {
+  const registerMatch = useMatch('/register')
+  const isRegister = Boolean(registerMatch)
   return (
     <header className='py-5'>
       <div className='max-w-7xl mx-auto px-4'>

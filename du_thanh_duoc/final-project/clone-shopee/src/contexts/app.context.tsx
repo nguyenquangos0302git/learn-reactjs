@@ -1,9 +1,9 @@
-import { createContext, useState } from 'react'
+import React, { createContext, useState } from 'react'
 import { getAccessTokenFromLocalStorage } from 'src/utils/auth'
 
 interface AppContextInterface {
   isAuthenticated: boolean
-  setIsAuthenticated: () => void
+  setIsAuthenticated: React.Dispatch<React.SetStateAction<boolean>>
 }
 
 const initialAppContext: AppContextInterface = {
@@ -13,6 +13,17 @@ const initialAppContext: AppContextInterface = {
 
 export const AppContext = createContext<AppContextInterface>(initialAppContext)
 
-export const AppProvider = ({ children }) => {
+export const AppProvider = ({ children }: { children: React.ReactNode }) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(initialAppContext.isAuthenticated)
+
+  return (
+    <AppContext.Provider
+      value={{
+        isAuthenticated,
+        setIsAuthenticated
+      }}
+    >
+      {children}
+    </AppContext.Provider>
+  )
 }
