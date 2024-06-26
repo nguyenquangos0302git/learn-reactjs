@@ -40,6 +40,7 @@ function App() {
       element: <NotFound />
     }
   ])
+
   return (
     <div className='App'>
       <MainLayout>
