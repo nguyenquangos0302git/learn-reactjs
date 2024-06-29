@@ -8,13 +8,14 @@ import { Link, useNavigate } from 'react-router-dom'
 import { registerAccount } from 'src/apis/auth.api'
 import Button from 'src/components/Button'
 import Input from 'src/components/Input'
+import path from 'src/constants/path'
 import { AppContext } from 'src/contexts/app.context'
 import { ErrorResponse } from 'src/types/utils.type'
 import { registerSchema, RegisterSchemaType } from 'src/utils/rules'
 import { isAxiosUnprocessableEntityError } from 'src/utils/utils'
 
 export default function Register() {
-  const { setIsAuthenticated } = useContext(AppContext)
+  const { setIsAuthenticated, setProfile } = useContext(AppContext)
   const navigate = useNavigate()
 
   const {
@@ -38,7 +39,8 @@ export default function Register() {
     registerAccountMutation.mutate(body, {
       onSuccess: (data) => {
         setIsAuthenticated(true)
-        navigate('/')
+        setProfile(data.data.data.user)
+        navigate(path.home)
       },
       onError: (error) => {
         if (isAxiosUnprocessableEntityError<ErrorResponse<Omit<RegisterSchemaType, 'confirm_password'>>>(error)) {
@@ -112,7 +114,7 @@ export default function Register() {
               </div>
               <div className='flex items-center justify-center'>
                 <span className='text-gray-300'>Bạn đã có tài khoản chưa?</span>
-                <Link to='/login' className='text-red-400 ml-1'>
+                <Link to={path.login} className='text-red-400 ml-1'>
                   Đăng nhập
                 </Link>
               </div>

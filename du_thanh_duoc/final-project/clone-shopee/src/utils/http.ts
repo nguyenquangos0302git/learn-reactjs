@@ -2,13 +2,23 @@ import axios, { AxiosError, type AxiosInstance } from 'axios'
 import { toast } from 'react-toastify'
 import HttpStatusCode from 'src/constants/httpStatusCode.enum'
 import { AuthResponse } from 'src/types/auth.type'
-import { clearAccessTokenFromLocalStorage, getAccessTokenFromLocalStorage, saveAccessTokenToLocalStorage } from './auth'
+import {
+  clearLocalStorage,
+  getAccessTokenFromLocalStorage,
+  getProfileFromLocalStorage,
+  setAccessTokenToLocalStorage,
+  setProfileToLocalStorage
+} from './auth'
+import path from 'src/constants/path'
+import { User } from 'src/types/user.type'
 
 class Http {
   instance: AxiosInstance
   private accessToken: string
+  private profile: User | null
   constructor() {
     this.accessToken = getAccessTokenFromLocalStorage()
+    this.profile = getProfileFromLocalStorage()
     this.instance = axios.create({
       baseURL: 'https://api-ecom.duthanhduoc.com/',
       timeout: 10000,
@@ -31,12 +41,15 @@ class Http {
       (response) => {
         const { url } = response.config
         console.log(response)
-        if (url === '/login' || url === '/register') {
+        if (url === path.login || url === path.register) {
           this.accessToken = (response.data as AuthResponse).data.access_token
-          saveAccessTokenToLocalStorage(this.accessToken)
-        } else if (url === '/logout') {
+          this.profile = (response.data as AuthResponse).data.user
+          setAccessTokenToLocalStorage(this.accessToken)
+          setProfileToLocalStorage(this.profile)
+        } else if (url === path.logout) {
           this.accessToken = ''
-          clearAccessTokenFromLocalStorage()
+          this.profile = null
+          clearLocalStorage()
         }
         return response
       },

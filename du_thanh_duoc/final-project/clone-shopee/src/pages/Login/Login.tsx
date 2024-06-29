@@ -6,13 +6,14 @@ import { Link, useNavigate } from 'react-router-dom'
 import { loginAccount } from 'src/apis/auth.api'
 import Button from 'src/components/Button'
 import Input from 'src/components/Input'
+import path from 'src/constants/path'
 import { AppContext } from 'src/contexts/app.context'
 import { ErrorResponse } from 'src/types/utils.type'
 import { LoginSchemaType, loginSchema } from 'src/utils/rules'
 import { isAxiosUnprocessableEntityError } from 'src/utils/utils'
 
 export default function Login() {
-  const { setIsAuthenticated } = useContext(AppContext)
+  const { setIsAuthenticated, setProfile } = useContext(AppContext)
   const navigate = useNavigate()
 
   const {
@@ -33,7 +34,8 @@ export default function Login() {
     loginAccountMutation.mutate(data, {
       onSuccess: (data) => {
         setIsAuthenticated(true)
-        navigate('/')
+        setProfile(data.data.data.user)
+        navigate(path.home)
       },
       onError: (error) => {
         if (isAxiosUnprocessableEntityError<ErrorResponse<LoginSchemaType>>(error)) {
@@ -87,7 +89,7 @@ export default function Login() {
               </div>
               <div className='flex items-center justify-center'>
                 <span className='text-gray-300'>Bạn chưa có tài khoản chưa?</span>
-                <Link to='/register' className='text-red-400 ml-1'>
+                <Link to={path.register} className='text-red-400 ml-1'>
                   Đăng ký
                 </Link>
               </div>
