@@ -1,6 +1,5 @@
 import { yupResolver } from '@hookform/resolvers/yup'
 import { useMutation } from '@tanstack/react-query'
-import { error } from 'console'
 import { omit } from 'lodash'
 import { useContext } from 'react'
 import { useForm } from 'react-hook-form'
@@ -22,8 +21,7 @@ export default function Register() {
     register,
     handleSubmit,
     formState: { errors },
-    setError,
-    reset
+    setError
   } = useForm<RegisterSchemaType>({
     resolver: yupResolver(registerSchema)
   })

@@ -40,7 +40,6 @@ class Http {
     this.instance.interceptors.response.use(
       (response) => {
         const { url } = response.config
-        console.log(response)
         if (url === path.login || url === path.register) {
           this.accessToken = (response.data as AuthResponse).data.access_token
           this.profile = (response.data as AuthResponse).data.user
@@ -55,7 +54,6 @@ class Http {
       },
       function (error: AxiosError) {
         if (error.response?.status !== HttpStatusCode.UnprocessableEntity) {
-          console.log(error)
           const data: any | undefined = error.request?.data
           const message = data?.message || error.message
           toast.error(message)

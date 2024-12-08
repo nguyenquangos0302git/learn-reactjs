@@ -20,8 +20,7 @@ export default function Login() {
     register,
     handleSubmit,
     formState: { errors },
-    setError,
-    reset
+    setError
   } = useForm<LoginSchemaType>({
     resolver: yupResolver(loginSchema)
   })

@@ -1,3 +1,4 @@
+import { NoUndefinedField } from './../types/utils.type'
 import * as yup from 'yup'
 
 // export type Rules = { [key in keyof FormData]?: RegisterOptions<FormData> }
@@ -57,7 +58,15 @@ import * as yup from 'yup'
 //   }
 // })
 
-const schema = yup.object({
+function testPriceMinAndPriceMax(this: yup.TestContext<yup.AnyObject>) {
+  const { price_min, price_max } = this.parent as { price_min: string; price_max: string }
+  if (price_min !== '' && price_max !== '') {
+    return Number(price_max) >= Number(price_min)
+  }
+  return price_min !== '' || price_max !== ''
+}
+
+export const schema = yup.object({
   email: yup
     .string()
     .required('Email là bắt buộc')
@@ -74,11 +83,26 @@ const schema = yup.object({
     .required('Confirm Password là bắt buộc')
     .min(6, 'Độ dài từ 6 - 160 ký tự')
     .max(160, 'Độ dài từ 6 - 160 ký tự')
-    .oneOf([yup.ref('password')], 'Nhập lại password không khớp')
+    .oneOf([yup.ref('password')], 'Nhập lại password không khớp'),
+  price_min: yup.string().test({
+    name: 'price_not_allowed',
+    message: 'Giá không phù hợp',
+    test: testPriceMinAndPriceMax
+  }),
+  price_max: yup.string().test({
+    name: 'price_not_allowed',
+    message: 'Giá không phù hợp',
+    test: testPriceMinAndPriceMax
+  }),
+  name: yup.string().trim().required('Tên sản phẩm là bắt buộc')
 })
 
-export const registerSchema = schema
-export const loginSchema = schema.omit(['confirm_password'])
+export const registerSchema = schema.omit(['price_min', 'price_max', 'name'])
+export const loginSchema = schema.omit(['confirm_password', 'price_min', 'price_max', 'name'])
+export const priceSchema = schema.pick(['price_min', 'price_max'])
 
 export type RegisterSchemaType = yup.InferType<typeof registerSchema>
+// export type LoginSchemaType = Pick<RegisterSchemaType, 'email' | 'password'>
 export type LoginSchemaType = yup.InferType<typeof loginSchema>
+export type PriceSchemaType = NoUndefinedField<yup.InferType<typeof priceSchema>>
+export type Schema = yup.InferType<typeof schema>

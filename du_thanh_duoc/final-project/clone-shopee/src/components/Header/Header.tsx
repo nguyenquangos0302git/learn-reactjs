@@ -1,12 +1,31 @@
-import { Link } from 'react-router-dom'
+import { createSearchParams, Link, useNavigate } from 'react-router-dom'
 import Popover from '../Popover'
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import authApi from 'src/apis/auth.api'
 import { useContext } from 'react'
 import { AppContext } from 'src/contexts/app.context'
 import path from 'src/constants/path'
+import useQueryConfig from 'src/hooks/useQueryConfig'
+import { useForm } from 'react-hook-form'
+import { schema, Schema } from 'src/utils/rules'
+import { yupResolver } from '@hookform/resolvers/yup'
+import { omit } from 'lodash'
+import { purchasesStatus } from 'src/constants/purchase'
+import purchaseApi from 'src/apis/purchase.api'
+import noProduct from 'src/assets/images/no-product.png'
 
+type FormData = Pick<Schema, 'name'>
+const nameSchema = schema.pick(['name'])
+const MAX_PURCHASE = 5
 export default function Header() {
+  const queryConfig = useQueryConfig()
+  const navigate = useNavigate()
+  const { register, handleSubmit } = useForm<FormData>({
+    defaultValues: {
+      name: ''
+    },
+    resolver: yupResolver<FormData>(nameSchema)
+  })
   const { isAuthenticated, setIsAuthenticated, profile, setProfile } = useContext(AppContext)
 
   const logoutAccountMutation = useMutation({
@@ -17,9 +36,48 @@ export default function Header() {
     }
   })
 
+  // khi chúng ta chuyển trang thì header chỉ bị re-render không bị unmount (cái này là do react router nó phân tích)
+  // tất nhiên là sẽ trừ trường hợp logout rồi nhảy sang RegisterLayout rồi nhảy vào lại
+  // nên các query này sẽ không bị inactive => không gọi lại => nên ở đây chúng ta không nhất thiết phải set stale time là infinity
+  const { data: purchasesInCartData } = useQuery({
+    queryKey: ['purchases', { status: purchasesStatus.inCart }],
+    queryFn: () => purchaseApi.getPurchases({ status: purchasesStatus.inCart }),
+    enabled: isAuthenticated
+  })
+
+  const purchaseInCartData = purchasesInCartData?.data.data
+
   const handleLogoutAccount = () => {
     logoutAccountMutation.mutate()
   }
+
+  const handleSubmitSearch = handleSubmit(
+    (data) => {
+      const config = queryConfig.order
+        ? omit(
+            {
+              ...queryConfig,
+              page: '1',
+              name: data.name
+            },
+            ['order', 'sort_by']
+          )
+        : {
+            ...queryConfig,
+            page: '1',
+            name: data.name
+          }
+      if (data.name) {
+        navigate({
+          pathname: path.home,
+          search: createSearchParams(config).toString()
+        })
+      }
+    },
+    (error) => {
+      console.log(error)
+    }
+  )
 
   return (
     <div className='pb-5 pt-2 bg-[linear-gradient(-180deg,#f53d2d,#f63)] text-white'>
@@ -118,11 +176,11 @@ export default function Header() {
               </g>
             </svg>
           </Link>
-          <form className='col-span-9'>
+          <form className='col-span-9' onSubmit={handleSubmitSearch}>
             <div className='bg-white rounded-sm p-1 flex'>
               <input
+                {...register('name')}
                 type='text'
-                name='search'
                 placeholder='FRESHIP ĐƠN TỪ 0Đ'
                 className='text-black px-3 py-2 flex-grow border-none outline-none bg-transparent'
               />
@@ -151,108 +209,47 @@ export default function Header() {
                   <div className='p-2'>
                     <div className='text-gray-400 capitalize'>Sản phẩm mới thêm</div>
                     <div className='mt-5'>
-                      <div className='mt-4 flex'>
-                        <div className='flex-shrink-0'>
-                          <img
-                            src='https://images.unsplash.com/photo-1718964313551-420f92249238?q=80&w=2784&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'
-                            alt='picture1'
-                            className='w-11 h-11 object-cover'
-                          />
+                      {purchaseInCartData && purchaseInCartData.length > 0 ? (
+                        purchaseInCartData.slice(0, 5).map((purchase) => {
+                          return (
+                            <div className='mt-2 py-2 flex hover:bg-gray-100' key={purchase.product._id}>
+                              <div className='flex-shrink-0'>
+                                <img src={purchase.product.image} alt='picture1' className='w-11 h-11 object-cover' />
+                              </div>
+                              <div className='flex-grow ml-2 overflow-hidden'>
+                                <div className='truncate'>{purchase.product.name}</div>
+                              </div>
+                              <div className='ml-2 flex-shrink-0'>
+                                <div className='text-orange'>₫{purchase.product.price}</div>
+                              </div>
+                            </div>
+                          )
+                        })
+                      ) : (
+                        <div className='p-2 w-[300px] h-[300px] flex items-center justify-center flex-col'>
+                          <img src={noProduct} alt='no-purchase' className='w-24 h-24' />
+                          <div className='mt-3 capitalize'>Chưa có sản phẩm</div>
                         </div>
-                        <div className='flex-grow ml-2 overflow-hidden'>
-                          <div className='truncate'>Con thỏ trắng có bộ lông màu xanh</div>
-                        </div>
-                        <div className='ml-2 flex-shrink-0'>
-                          <div className='text-orange'>₫375.000</div>
-                        </div>
-                      </div>
-                      <div className='mt-4 flex'>
-                        <div className='flex-shrink-0'>
-                          <img
-                            src='https://plus.unsplash.com/premium_photo-1670282393309-70fd7f8eb1ef?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTN8fGdpcmx8ZW58MHx8MHx8fDA%3D'
-                            alt='picture2'
-                            className='w-11 h-11 object-cover'
-                          />
-                        </div>
-                        <div className='flex-grow ml-2 overflow-hidden'>
-                          <div className='truncate'>Con thỏ trắng có bộ lông màu đen</div>
-                        </div>
-                        <div className='ml-2 flex-shrink-0'>
-                          <div className='text-orange'>₫375.000</div>
-                        </div>
-                      </div>
-                      <div className='mt-4 flex'>
-                        <div className='flex-shrink-0'>
-                          <img
-                            src='https://images.unsplash.com/photo-1635488640163-e5f6782cda6e?q=80&w=2788&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'
-                            alt='picture3'
-                            className='w-11 h-11 object-cover'
-                          />
-                        </div>
-                        <div className='flex-grow ml-2 overflow-hidden'>
-                          <div className='truncate'>Con thỏ trắng có bộ lông màu hồng</div>
-                        </div>
-                        <div className='ml-2 flex-shrink-0'>
-                          <div className='text-orange'>₫375.000</div>
-                        </div>
-                      </div>
-                      <div className='mt-4 flex'>
-                        <div className='flex-shrink-0'>
-                          <img
-                            src='https://images.unsplash.com/photo-1631947430066-48c30d57b943?q=80&w=2816&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'
-                            alt='picture4'
-                            className='w-11 h-11 object-cover'
-                          />
-                        </div>
-                        <div className='flex-grow ml-2 overflow-hidden'>
-                          <div className='truncate'>Con thỏ trắng có bộ lông màu cam</div>
-                        </div>
-                        <div className='ml-2 flex-shrink-0'>
-                          <div className='text-orange'>₫375.000</div>
-                        </div>
-                      </div>
-                      <div className='mt-4 flex'>
-                        <div className='flex-shrink-0'>
-                          <img
-                            src='https://plus.unsplash.com/premium_photo-1718204437243-a644894df78d?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxlZGl0b3JpYWwtZmVlZHwxfHx8ZW58MHx8fHx8'
-                            alt='picture5'
-                            className='w-11 h-11 object-cover'
-                          />
-                        </div>
-                        <div className='flex-grow ml-2 overflow-hidden'>
-                          <div className='truncate'>Con thỏ trắng có bộ lông màu nâu</div>
-                        </div>
-                        <div className='ml-2 flex-shrink-0'>
-                          <div className='text-orange'>₫375.000</div>
-                        </div>
-                      </div>
-                      <div className='mt-4 flex'>
-                        <div className='flex-shrink-0'>
-                          <img
-                            src='https://images.unsplash.com/photo-1719054415376-2fdc899d9df9?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxlZGl0b3JpYWwtZmVlZHw2fHx8ZW58MHx8fHx8'
-                            alt='picture6'
-                            className='w-11 h-11 object-cover'
-                          />
-                        </div>
-                        <div className='flex-grow ml-2 overflow-hidden'>
-                          <div className='truncate'>Con thỏ trắng có bộ lông màu tím</div>
-                        </div>
-                        <div className='ml-2 flex-shrink-0'>
-                          <div className='text-orange'>₫375.000</div>
-                        </div>
-                      </div>
+                      )}
                     </div>
-                    <div className='flex mt-6 items-center justify-between'>
-                      <div className='capitalize text-xs text-gray-600'>Thêm vào giỏ hàng</div>
-                      <button className='capitalize bg-orange hover:bg-opacity-90 px-4 py-2 rounded-sm text-white'>
-                        Xem giỏ hàng
-                      </button>
-                    </div>
+                    {purchaseInCartData && (
+                      <div className='flex mt-6 items-center justify-between'>
+                        <div className='capitalize text-xs text-gray-600'>
+                          {purchaseInCartData && purchaseInCartData.length > MAX_PURCHASE
+                            ? purchaseInCartData.length - MAX_PURCHASE + ' '
+                            : ''}
+                          Thêm vào giỏ hàng
+                        </div>
+                        <button className='capitalize bg-orange hover:bg-opacity-90 px-4 py-2 rounded-sm text-white'>
+                          Xem giỏ hàng
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
               }
             >
-              <Link to={path.home}>
+              <Link to={path.home} className='relative'>
                 <svg
                   xmlns='http://www.w3.org/2000/svßg'
                   fill='none'
@@ -267,6 +264,11 @@ export default function Header() {
                     d='M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 0 0-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 0 0-16.536-1.84M7.5 14.25 5.106 5.272M6 20.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Zm12.75 0a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z'
                   />
                 </svg>
+                {purchaseInCartData && (
+                  <span className='absolute top-[-5px] left-[20px] rounded-full px-[9px] py-[1px] bg-white text-xs text-orange'>
+                    {purchaseInCartData?.length}
+                  </span>
+                )}
               </Link>
             </Popover>
           </div>
